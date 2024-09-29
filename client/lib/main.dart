@@ -38,7 +38,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // Hàm gọi API
   Future<void> fetchApiData() async {
-    var url = Uri.parse('http://10.11.174.142:3000/users'); // API mẫu
+    var url = Uri.parse('http://192.168.3.112:3000/users'); // API mẫu
     try {
       var response = await http.get(url);
       if (response.statusCode == 200) {

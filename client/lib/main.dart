@@ -38,7 +38,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   // Hàm gọi API
   Future<void> fetchApiData() async {
-    var url = Uri.parse('http://10.11.174.142:3000/users'); // API mẫu
+    var url = Uri.parse('http://192.168.3.112:3000/users'); // API mẫu
     try {
       var response = await http.get(url);
       if (response.statusCode == 200) {
@@ -89,13 +89,44 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
+  Future<void> deleteUser(String id) async {
+    var url = Uri.parse('http://192.168.3.112:3000/users/$id'); // API xóa
+    try {
+      var response = await http.delete(url);
+      if (response.statusCode == 200) {
+        var deletedUser = _apiData.firstWhere((user) => user['_id'] == id);
+        var deletedUserName = deletedUser['name'];
+        setState(() {
+          _apiData.removeWhere((user) => user['_id'] == id);
+          // Cập nhật danh sách
+        });
+        // Hiển thị thông báo khi xóa thành công
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Đã xóa người dùng: $deletedUserName'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                'Không thể xóa người dùng. Mã lỗi: ${response.statusCode}'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      Exception(e);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     fetchApiData(); // Gọi API khi màn hình khởi tạo
   }
 
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -123,13 +154,43 @@ class _MyHomePageState extends State<MyHomePage> {
                         Text('Version: ${_apiData[index]['__v']}'),
                       ],
                     ),
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: () {
+                        // Hiện thông báo xác nhận trước khi xóa
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text('Xác nhận xóa'),
+                              content: Text(
+                                  'Bạn có chắc chắn muốn xóa người dùng này không?'),
+                              actions: <Widget>[
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context); // Đóng dialog
+                                    deleteUser(
+                                        _apiData[index]['_id']); // Gọi hàm xóa
+                                  },
+                                  child: Text('Có'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(context),
+                                  child: Text('Không'),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
+                    ),
                   );
                 },
               ),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              onPressed: fetchApiData, // Nút để gọi API lại khi bấm
+              onPressed: fetchApiData,
               child: const Text('Bấm vô đây để tải lại Data nè fen'),
             ),
           ],

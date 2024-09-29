@@ -1,5 +1,5 @@
 // users.controller.ts
-import { Controller, Get, Post, Body, Param } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Delete } from '@nestjs/common';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { UsersService } from '../service/users.service';
 
@@ -34,5 +34,10 @@ export class UsersController {
   @Get('findemail/:email')
   async getByEmail(@Param('email') email: string) {
     return await this.usersService.findbyemail(email);
+  }
+
+  @Delete(':id')
+  async deleteUser(@Param('id') id: string) {
+      return await this.usersService.deleteUser(id);
   }
 }

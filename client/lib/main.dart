@@ -154,7 +154,92 @@ class _MyHomePageState extends State<MyHomePage> {
                         Text('Version: ${_apiData[index]['__v']}'),
                       ],
                     ),
-                    trailing: IconButton(
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.edit, color: Colors.blue),
+                          onPressed: () {
+                            // Hiện dialog để cập nhật thông tin người dùng
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                TextEditingController nameController = TextEditingController(text: _apiData[index]['name']);
+                                TextEditingController emailController = TextEditingController(text: _apiData[index]['email']);
+                                return AlertDialog(
+                                  title: Text('Cập nhật người dùng'),
+                                  content: Column(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      TextField(
+                                        controller: nameController,
+                                        decoration:
+                                            InputDecoration(labelText: 'Tên'),
+                                      ),
+                                      TextField(
+                                        controller: emailController,
+                                        decoration:
+                                            InputDecoration(labelText: 'Email'),
+                                      ),
+                                    ],
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context); // Đóng dialog
+                                      },
+                                      child: Text('Hủy'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context); // Đóng dialog
+                                        updateUser(
+                                          _apiData[index]['_id'],
+                                          nameController.text,
+                                          emailController.text,
+                                        ); // Gọi hàm updateUser
+                                      },
+                                      child: Text('Cập nhật'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.delete, color: Colors.red),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext context) {
+                                return AlertDialog(
+                                  title: Text('Xác nhận xóa'),
+                                  content: Text(
+                                      'Bạn có chắc chắn muốn xóa người dùng này không?'),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context); // Đóng dialog
+                                        deleteUser(_apiData[index]
+                                            ['_id']); // Gọi hàm xóa
+                                      },
+                                      child: Text('Có'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.pop(context),
+                                      child: Text('Không'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+
+                    /*trailing: IconButton(
                       icon: Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
                         // Hiện thông báo xác nhận trước khi xóa
@@ -183,7 +268,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           },
                         );
                       },
-                    ),
+                    ),*/
                   );
                 },
               ),
@@ -197,5 +282,50 @@ class _MyHomePageState extends State<MyHomePage> {
         ),
       ),
     );
+  }
+
+  //Update funtion
+  Future<void> updateUser(String id, String name, String email) async {
+    var url =
+        Uri.parse('http://localhost:3000/users/updateuser/$id'); // API cập nhật ng dùng
+    try {
+      var response = await http.put(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'name': name,
+          'email': email,
+        }),
+      );
+
+      if (response.statusCode == 200) {
+        setState(() {
+          var updatedUser = _apiData.firstWhere((user) => user['_id'] == id);
+          updatedUser['name'] = name;
+          updatedUser['email'] = email;
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Đã cập nhật người dùng thành công: $name'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Cập nhật thất bại. Mã lỗi: ${response.statusCode}'),
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Lỗi khi gọi API: $e'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+    }
   }
 }

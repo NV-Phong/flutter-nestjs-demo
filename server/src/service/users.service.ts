@@ -43,4 +43,22 @@ export class UsersService {
       console.log('méo tìm thây người dùng ', id, error);
     }
   }
+
+  async updateUser(id: string, updateUser: any) {
+    try {
+      if (!id || !updateUser) {
+        throw new Error('ID và dữ liệu cập nhật không được để trống');
+      }
+      const user = await this.userModel.findByIdAndUpdate(id, updateUser, {
+        new: true,
+      });
+      if (!user) {
+        throw new Error(`Không tìm thấy người dùng có ID: ${id}`);
+      }
+      return user;
+    } catch (error) {
+      console.error('Lỗi khi cập nhật người dùng:', error);
+      return { error: error.message };
+    }
+  }
 }

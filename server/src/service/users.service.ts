@@ -4,6 +4,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User, UserDocument } from '../schema/user.schema';
 import { CreateUserDto } from 'src/dto/create-user.dto';
+import { UpdateUserDto } from 'src/dto/update-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -41,6 +42,19 @@ export class UsersService {
       await this.userModel.findByIdAndDelete({ _id: id }).exec();
     } catch (error) {
       console.log('méo tìm thây người dùng ', id, error);
+    }
+  }
+
+  async updateUser(id: string,  updateUserDto: UpdateUserDto): Promise<User> {
+    try {
+      const updatedUser = await this.userModel.findByIdAndUpdate(id, updateUserDto, { new: true }).exec();
+      if (!updatedUser) {
+        throw new Error('Ko thấy đứa mún đổi');
+      }
+      return updatedUser;
+    } catch (error) {
+      console.error('Xin lỗi hồ sơ éo hợp lệ ko đổi đc: ', error);
+      throw error;
     }
   }
 }

@@ -27,9 +27,16 @@ export class UsersService {
     console.log('Hey I found this guy: ', id);
     return await this.userModel.findOne({ _id: id }).exec();
   }
-  async findbyemail(email: string): Promise<User> {
-    console.log('Hey I found this guy: ', email);
-    return await this.userModel.findOne({ email: email }).exec();
+  async findbyemail(email: string): Promise<User[] | null> {
+    console.log('Hey I am searching for users with email containing: ', email);
+
+    // Tìm tất cả các email chứa chuỗi con "email" (không phân biệt chữ hoa chữ thường)
+    const users = await this.userModel.find({
+        email: { $regex: email, $options: 'i' } // 'i' để không phân biệt hoa thường
+    }).exec();
+
+    // Nếu không tìm thấy user nào, trả về null
+    return users.length > 0 ? users : null;
   }
 
   async findbyID(id: string): Promise<User> {

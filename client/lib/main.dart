@@ -15,10 +15,10 @@ class MyApp extends StatelessWidget {
       title: 'healthcare',
       theme: ThemeData(
         colorScheme:
-            ColorScheme.fromSeed(seedColor: Color.fromARGB(255, 48, 198, 103)),
+            ColorScheme.fromSeed(seedColor: Color.fromARGB(255, 255, 0, 89)),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Nguyên Óc Chóa'),
+      home: const MyHomePage(title: 'Phuoc Oc Bo'),
     );
   }
 }
@@ -36,9 +36,33 @@ class _MyHomePageState extends State<MyHomePage> {
   // Danh sách lưu trữ kết quả từ API
   List<dynamic> _apiData = [];
 
+  Future<void> FindUserEmail(String email) async {
+    var url = Uri.parse(
+        'http://192.168.3.113:3000/users/findemail/$email'); // API tìm
+    try {
+      var response = await http.get(url);
+      if (response.statusCode == 200) {
+        var users = response.body.isNotEmpty
+            ? jsonDecode(response.body)
+            : null; // Giải mã JSON trả về
+        setState(() {
+          if (users != null) {
+            // Cập nhật danh sách chỉ chứa người dùng tìm thấy
+            _apiData = users;
+          } else {
+            // Nếu không tìm thấy, có thể hiển thị danh sách trống
+            _apiData = [];
+          }
+        });
+      }
+    } catch (e) {
+      Exception(e);
+    }
+  }
+
   // Hàm gọi API
   Future<void> fetchApiData() async {
-    var url = Uri.parse('http://localhost:3000/users'); // API mẫu
+    var url = Uri.parse('http://192.168.3.113:3000/users'); // API mẫu
     try {
       var response = await http.get(url);
       if (response.statusCode == 200) {
@@ -140,6 +164,22 @@ class _MyHomePageState extends State<MyHomePage> {
             const Text(
               'Dữ liệu từ API:',
             ),
+            // Thêm TextField cho tìm kiếm email
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                onChanged: (value) {
+                  // Gọi hàm tìm kiếm khi người dùng nhập email
+                  fetchApiData();
+                  FindUserEmail(value);
+                },
+                decoration: InputDecoration(
+                  labelText: 'Nhập email để tìm kiếm',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.emailAddress,
+              ),
+            ),
             Expanded(
               child: ListView.builder(
                 itemCount: _apiData.length,
@@ -164,8 +204,12 @@ class _MyHomePageState extends State<MyHomePage> {
                             showDialog(
                               context: context,
                               builder: (BuildContext context) {
-                                TextEditingController nameController = TextEditingController(text: _apiData[index]['name']);
-                                TextEditingController emailController = TextEditingController(text: _apiData[index]['email']);
+                                TextEditingController nameController =
+                                    TextEditingController(
+                                        text: _apiData[index]['name']);
+                                TextEditingController emailController =
+                                    TextEditingController(
+                                        text: _apiData[index]['email']);
                                 return AlertDialog(
                                   title: Text('Cập nhật người dùng'),
                                   content: Column(
@@ -286,8 +330,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
   //Update funtion
   Future<void> updateUser(String id, String name, String email) async {
-    var url =
-        Uri.parse('http://localhost:3000/users/updateuser/$id'); // API cập nhật ng dùng
+    var url = Uri.parse(
+        'http://localhost:3000/users/updateuser/$id'); // API cập nhật ng dùng
     try {
       var response = await http.put(
         url,
